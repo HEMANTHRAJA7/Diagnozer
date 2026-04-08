@@ -18,37 +18,34 @@ def generate_shap_heatmap(model_wrapper, input_tensor: np.ndarray) -> bytes:
     # 1. Extract the base image (224, 224, 3)
     img_3d = input_tensor[0]
     
-    # 2. Get superpixels
-    segments = get_superpixels(img_3d, n_segments=50)
+    # 2. Get superpixels with lower density for speed
+    segments = get_superpixels(img_3d, n_segments=8)
     
     # 3. Predict function that acts on purely binary masked versions of the superpixels
     def mask_predict(masks: np.ndarray) -> np.ndarray:
         # masks is shape (num_samples, num_superpixels)
         out = []
         for mask in masks:
-            # We replace dropped superpixels with 0.5 (gray background)
             masked_img = np.copy(img_3d)
             for seg_id, is_active in enumerate(mask):
                 if not is_active:
                     masked_img[segments == (seg_id + 1)] = 0.5 
             
-            # Run inference on the mocked image
             tensor = np.expand_dims(masked_img, axis=0)
             preds = model_wrapper.predict(tensor)
-            out.append(preds[0]) # shape (num_classes,)
+            out.append(preds[0])
         return np.array(out)
     
     # 4. Initialize KernelExplainer targeting all superpixels
     num_superpixels = len(np.unique(segments))
-    # Background is a vector of entirely masked out superpixels
     background = np.zeros((1, num_superpixels))
     explainer = shap.KernelExplainer(mask_predict, background)
     
-    # The active image has all superpixels turned ON (array of 1s)
     active_mask = np.ones((1, num_superpixels))
     
-    # 5. Calculate SHAP values for the fully active mask (nsamples limits runtime drastically)
-    shap_vals = explainer.shap_values(active_mask, nsamples=100)
+    # 5. Calculate SHAP values (nsamples limits runtime drastically)
+    # Must have nsamples > num_superpixels for LassoLars estimator to function mathematically
+    shap_vals = explainer.shap_values(active_mask, nsamples=15)
     
     # Grab highest attribution index
     top_class_idx = np.argmax(model_wrapper.predict(input_tensor)[0])

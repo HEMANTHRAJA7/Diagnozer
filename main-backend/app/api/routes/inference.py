@@ -30,7 +30,7 @@ async def proxy_predict(
         try:
             # We must forward it accurately
             files = {"file": (file.filename, file_bytes, file.content_type)}
-            response = await client.post(ml_url, files=files, timeout=60.0)
+            response = await client.post(ml_url, files=files, timeout=300.0)
             
             if response.status_code != 200:
                 print(f"ML Service Error: {response.text}")
