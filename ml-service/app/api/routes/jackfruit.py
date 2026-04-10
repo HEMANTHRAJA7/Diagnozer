@@ -21,9 +21,10 @@ async def predict_jackfruit_route(file: UploadFile = File(...)):
         prediction_result = jackfruit_predictor.predict(file_bytes)
         active_model_wrapper = prediction_result.pop("active_model_wrapper")
         active_tensor = prediction_result.pop("active_tensor")
+        display_image = prediction_result.pop("display_image", None)
         
         # SHAP calculation over the specific Stage B model used
-        heatmap_bytes = generate_shap_heatmap(active_model_wrapper, active_tensor)
+        heatmap_bytes = generate_shap_heatmap(active_model_wrapper, active_tensor, display_image=display_image)
         heatmap_url = upload_heatmap_to_s3(heatmap_bytes, "heatmap.png")
         
         return PredictionResponse(

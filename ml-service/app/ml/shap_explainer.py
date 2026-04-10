@@ -7,21 +7,38 @@ import matplotlib.pyplot as plt
 import io
 
 def get_superpixels(image: np.ndarray, n_segments=50, compactness=10) -> np.ndarray:
-    """Generates a superpixel mask array for a given 224x224x3 image."""
+    """Generates a superpixel mask array for a given HxWx3 image."""
     return slic(image, n_segments=n_segments, compactness=compactness, start_label=1)
 
-def generate_shap_heatmap(model_wrapper, input_tensor: np.ndarray) -> bytes:
+def generate_shap_heatmap(model_wrapper, input_tensor: np.ndarray, display_image: np.ndarray = None) -> bytes:
     """
     Generates a SHAP KernelExplainer feature overlay using SLIC superpixels.
-    This heavily boosts performance on TFLite black-box boundaries.
+    
+    Args:
+        model_wrapper: TFLite model wrapper with .predict() method.
+        input_tensor: Preprocessed tensor of shape (1, H, W, 3) used for model inference.
+        display_image: Optional clean [0,1] scaled image of shape (H, W, 3) for heatmap overlay.
+                       If not provided, falls back to input_tensor[0] (which may look off
+                       if the tensor was preprocessed with EfficientNet/ImageNet normalization).
     """
-    # 1. Extract the base image (224, 224, 3)
+    # 1. Extract the preprocessed image for SHAP masking
     img_3d = input_tensor[0]
     
-    # 2. Get superpixels with lower density for speed
-    segments = get_superpixels(img_3d, n_segments=8)
+    # Use the clean display image for visualization if provided
+    if display_image is not None:
+        vis_image = display_image
+    else:
+        # Fallback: try to make the preprocessed tensor displayable
+        vis_image = img_3d.copy()
+        # If values are outside [0,1], rescale for display
+        vmin, vmax = vis_image.min(), vis_image.max()
+        if vmin < 0 or vmax > 1.0:
+            vis_image = (vis_image - vmin) / (vmax - vmin + 1e-8)
     
-    # 3. Predict function that acts on purely binary masked versions of the superpixels
+    # 2. Get superpixels from the display image (cleaner segmentation on real pixels)
+    segments = get_superpixels(vis_image, n_segments=15)
+    
+    # 3. Predict function that acts on binary masked versions of the superpixels
     def mask_predict(masks: np.ndarray) -> np.ndarray:
         # masks is shape (num_samples, num_superpixels)
         out = []
@@ -29,7 +46,8 @@ def generate_shap_heatmap(model_wrapper, input_tensor: np.ndarray) -> bytes:
             masked_img = np.copy(img_3d)
             for seg_id, is_active in enumerate(mask):
                 if not is_active:
-                    masked_img[segments == (seg_id + 1)] = 0.5 
+                    # Use 0.0 as baseline — proper neutral for normalized inputs
+                    masked_img[segments == (seg_id + 1)] = 0.0
             
             tensor = np.expand_dims(masked_img, axis=0)
             preds = model_wrapper.predict(tensor)
@@ -43,9 +61,8 @@ def generate_shap_heatmap(model_wrapper, input_tensor: np.ndarray) -> bytes:
     
     active_mask = np.ones((1, num_superpixels))
     
-    # 5. Calculate SHAP values (nsamples limits runtime drastically)
-    # Must have nsamples > num_superpixels for LassoLars estimator to function mathematically
-    shap_vals = explainer.shap_values(active_mask, nsamples=15)
+    # 5. Calculate SHAP values (nsamples should be > num_superpixels)
+    shap_vals = explainer.shap_values(active_mask, nsamples=max(2 * num_superpixels + 1, 32))
     
     # Grab highest attribution index
     top_class_idx = np.argmax(model_wrapper.predict(input_tensor)[0])
@@ -54,7 +71,7 @@ def generate_shap_heatmap(model_wrapper, input_tensor: np.ndarray) -> bytes:
         if len(shap_vals) > top_class_idx:
             class_shap = shap_vals[top_class_idx][0]
         else:
-            class_shap = shap_vals[0][0] # Fallback for binary outputs
+            class_shap = shap_vals[0][0]  # Fallback for binary outputs
     else:
         # If output is 3D array (1, num_superpixels, num_classes)
         if len(shap_vals.shape) == 3:
@@ -63,26 +80,25 @@ def generate_shap_heatmap(model_wrapper, input_tensor: np.ndarray) -> bytes:
             class_shap = shap_vals[0]
 
     # 6. Map the superpixel attributions back to pixel-level image structure
-    heatmap = np.zeros_like(img_3d[:, :, 0])
+    heatmap = np.zeros(vis_image.shape[:2], dtype=np.float64)
     for seg_id in range(num_superpixels):
         heatmap[segments == (seg_id + 1)] = class_shap[seg_id]
         
-    # 7. Normalize heatmap and use Matplotlib to overlay
+    # 7. Normalize heatmap and overlay on the DISPLAY image
     max_val = np.max(np.abs(heatmap))
     if max_val > 0:
         heatmap = heatmap / max_val
     
-    plt.figure(figsize=(4, 4))
-    plt.imshow(img_3d)
-    # Red for positive SHAP values. We use 'jet' cmap
-    # Mask out areas where attribution is near 0 so the original leaf shows
-    alpha_mask = np.where(np.abs(heatmap) > 0.1, 0.6, 0.0) 
-    plt.imshow(heatmap, cmap='jet', alpha=alpha_mask, vmin=-1, vmax=1)
-    plt.axis('off')
+    fig, ax = plt.subplots(figsize=(4, 4), dpi=150)
+    ax.imshow(vis_image)
+    # Overlay: highlight regions with significant attribution
+    alpha_mask = np.where(np.abs(heatmap) > 0.05, 0.55, 0.0) 
+    ax.imshow(heatmap, cmap='jet', alpha=alpha_mask, vmin=-1, vmax=1)
+    ax.axis('off')
     
     buf = io.BytesIO()
-    plt.savefig(buf, format='png', bbox_inches='tight', pad_inches=0)
-    plt.close()
+    fig.savefig(buf, format='png', bbox_inches='tight', pad_inches=0)
+    plt.close(fig)
     buf.seek(0)
     
     return buf.read()
