@@ -1,4 +1,4 @@
-<![CDATA[# 🌿 Diagnozer
+# 🌿 Diagnozer
 
 **AI-Powered Agriculture Disease Detection with Explainable AI**
 
@@ -369,4 +369,4 @@ This project is developed as an academic/research project.
 <p align="center">
   Built with ❤️ using FastAPI, TensorFlow Lite, SHAP & React Native
 </p>
-]]>
+
