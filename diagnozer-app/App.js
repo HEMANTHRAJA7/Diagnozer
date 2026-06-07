@@ -9,6 +9,7 @@ import ScannerScreen from './src/screens/ScannerScreen';
 import ResultScreen from './src/screens/ResultScreen';
 import ChatScreen from './src/screens/ChatScreen';
 import HistoryScreen from './src/screens/HistoryScreen';
+import RegisterScreen from './src/screens/RegisterScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -39,6 +40,7 @@ export default function App() {
         <Stack.Screen name="Result" component={ResultScreen} />
         <Stack.Screen name="Chat" component={ChatScreen} />
         <Stack.Screen name="History" component={HistoryScreen} />
+        <Stack.Screen name="Register" component={RegisterScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

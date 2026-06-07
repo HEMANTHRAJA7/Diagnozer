@@ -1,6 +1,9 @@
 import os
 from pydantic_settings import BaseSettings
 
+current_dir = os.path.dirname(os.path.abspath(__file__))
+env_path = os.path.abspath(os.path.join(current_dir, "..", "..", ".env"))
+
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Diagnozer ML Service"
     VERSION: str = "1.0.0"
@@ -17,6 +20,6 @@ class Settings(BaseSettings):
     ML_SERVICE_EXTERNAL_URL: str = "http://localhost:8000"
 
     class Config:
-        env_file = ".env"
+        env_file = env_path
 
 settings = Settings()

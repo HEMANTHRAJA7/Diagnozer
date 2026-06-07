@@ -1,6 +1,9 @@
 import os
 from pydantic_settings import BaseSettings
 
+current_dir = os.path.dirname(os.path.abspath(__file__))
+env_path = os.path.abspath(os.path.join(current_dir, "..", "..", ".env"))
+
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Diagnozer Main Backend"
     VERSION: str = "1.0.0"
@@ -21,6 +24,6 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: str = ""
 
     class Config:
-        env_file = ".env"
+        env_file = env_path
 
 settings = Settings()

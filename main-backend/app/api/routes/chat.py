@@ -7,12 +7,22 @@ from app.api.dependencies import get_current_user
 from app.db.mongodb import get_database
 import traceback
 
-try:
-    from google import genai
-    client = genai.Client(api_key=settings.GEMINI_API_KEY) if settings.GEMINI_API_KEY else None
-except (ImportError, Exception):
-    genai = None
-    client = None
+_client = None
+
+def get_gemini_client():
+    global _client
+    if _client is not None:
+        return _client
+        
+    if not settings.GEMINI_API_KEY:
+        raise HTTPException(status_code=500, detail="Gemini API Key missing!")
+    try:
+        from google import genai
+        _client = genai.Client(api_key=settings.GEMINI_API_KEY)
+        return _client
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Failed to initialize Gemini Client: {str(e)}")
 
 router = APIRouter()
 
@@ -48,8 +58,7 @@ async def get_chat_history(current_user: dict = Depends(get_current_user), db=De
 
 @router.post("/", response_model=ChatResponse)
 async def chat_with_bot(request: ChatRequest, current_user: dict = Depends(get_current_user), db=Depends(get_database)):
-    if not settings.GEMINI_API_KEY:
-        raise HTTPException(status_code=500, detail="Gemini API Key missing!")
+    client = get_gemini_client()
         
     try:
         # Load user's latest diagnosis
