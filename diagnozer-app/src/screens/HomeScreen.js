@@ -50,6 +50,15 @@ export default function HomeScreen({ navigation }) {
           <Text style={typography.h2}>Jackfruit</Text>
           <Text style={[typography.caption, {marginTop: 5, color: colors.primary}]}>Artocarpus hetero.</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.historyCard}
+          onPress={() => navigation.navigate('History')}
+          activeOpacity={0.8}
+        >
+          <View style={styles.cardGlow} />
+          <Text style={[typography.h3, {color: colors.primary}]}>📜 View Diagnosis History</Text>
+        </TouchableOpacity>
       </View>
 
       <TouchableOpacity 
@@ -93,6 +102,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     overflow: 'hidden',
     height: width * 0.45,
+  },
+  historyCard: {
+    backgroundColor: colors.surface,
+    borderRadius: 20,
+    padding: 20,
+    borderColor: colors.border,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    height: width * 0.20,
   },
   cardGlow: {
     position: 'absolute',

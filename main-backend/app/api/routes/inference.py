@@ -1,12 +1,26 @@
 from fastapi import APIRouter, Depends, File, UploadFile, HTTPException, Form
 import httpx
-from typing import Optional
+from typing import Optional, List
 from app.api.dependencies import get_current_user
 from app.db.mongodb import get_database
 from app.core.config import settings
 from app.models.history import PredictionHistory
 
 router = APIRouter()
+
+@router.get("/history", response_model=List[PredictionHistory])
+async def get_prediction_history(
+    current_user: dict = Depends(get_current_user),
+    db=Depends(get_database)
+):
+    try:
+        cursor = db["history"].find({"user_id": str(current_user["_id"])}).sort("created_at", -1)
+        history = await cursor.to_list(length=100)
+        return history
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/")
 async def proxy_predict(

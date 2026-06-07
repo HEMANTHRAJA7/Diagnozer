@@ -12,6 +12,17 @@ _store = {
     "chats": [],
 }
 
+def get_sort_key(item, key):
+    val = item.get(key)
+    if val is None:
+        return 0.0
+    if hasattr(val, "timestamp"):
+        try:
+            return val.timestamp()
+        except Exception:
+            pass
+    return 0.0
+
 class MockCollection:
     def __init__(self, name):
         self.name = name
@@ -28,7 +39,7 @@ class MockCollection:
             return None
         if sort:
             key, direction = sort[0]
-            matches.sort(key=lambda x: x.get(key, datetime.min), reverse=(direction == -1))
+            matches.sort(key=lambda x: get_sort_key(x, key), reverse=(direction == -1))
         return matches[0]
     
     def find(self, query, sort=None):
@@ -41,14 +52,14 @@ class MockCollection:
         
         if sort:
             key, direction = sort[0]
-            matches.sort(key=lambda x: x.get(key, datetime.min), reverse=(direction == -1))
+            matches.sort(key=lambda x: get_sort_key(x, key), reverse=(direction == -1))
             
         class MockCursor:
             def __init__(self, data):
                 self.data = data
                 
             def sort(self, key, direction=1):
-                self.data.sort(key=lambda x: x.get(key, datetime.min), reverse=(direction == -1))
+                self.data.sort(key=lambda x: get_sort_key(x, key), reverse=(direction == -1))
                 return self
                 
             async def to_list(self, length=None):
