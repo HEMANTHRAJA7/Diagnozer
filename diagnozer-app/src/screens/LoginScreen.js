@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, SafeAreaView, StatusBar } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
@@ -28,56 +28,59 @@ export default function LoginScreen({ navigation }) {
       await AsyncStorage.setItem('userToken', response.data.access_token);
       navigation.replace('Home');
     } catch (err) {
-      setError(err.response?.data?.detail || 'Login failed Check backend connection');
+      setError(err.response?.data?.detail || 'Login failed. Check backend connection.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={[typography.h1, { marginBottom: 10 }]}>Diagnozer</Text>
-      <Text style={[typography.body, { marginBottom: 40 }]}>AI Crop Disease Detection Nexus</Text>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor={colors.background} />
+      <View style={styles.content}>
+        <Text style={[typography.h1, { marginBottom: 10 }]}>Diagnozer</Text>
+        <Text style={[typography.body, { marginBottom: 40 }]}>AI Crop Disease Detection Nexus</Text>
 
-      {error && <Text style={styles.errorText}>{error}</Text>}
+        {error && <Text style={styles.errorText}>{error}</Text>}
 
-      <TextInput
-        style={styles.input}
-        placeholder="User Email"
-        placeholderTextColor={colors.textSecondary}
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
-        keyboardType="email-address"
-      />
-      
-      <TextInput
-        style={styles.input}
-        placeholder="Security Key (Password)"
-        placeholderTextColor={colors.textSecondary}
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
+        <TextInput
+          style={styles.input}
+          placeholder="User Email"
+          placeholderTextColor={colors.textSecondary}
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          keyboardType="email-address"
+        />
+        
+        <TextInput
+          style={styles.input}
+          placeholder="Security Key (Password)"
+          placeholderTextColor={colors.textSecondary}
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
 
-      <TouchableOpacity 
-        style={styles.button} 
-        onPress={handleLogin}
-        disabled={loading}
-      >
-        {loading ? (
-          <ActivityIndicator color={colors.background} />
-        ) : (
-          <Text style={typography.button}>ACCESS SYSTEMS</Text>
-        )}
-      </TouchableOpacity>
-      
-      <TouchableOpacity onPress={() => {/* Mocking register link */}}>
-        <Text style={[typography.caption, { marginTop: 25, textAlign: 'center' }]}>
-          Need a clearance level? <Text style={{color: colors.primary}}>Initialize Core</Text>
-        </Text>
-      </TouchableOpacity>
-    </View>
+        <TouchableOpacity 
+          style={styles.button} 
+          onPress={handleLogin}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color={colors.background} />
+          ) : (
+            <Text style={typography.button}>ACCESS SYSTEMS</Text>
+          )}
+        </TouchableOpacity>
+        
+        <TouchableOpacity onPress={() => {/* Mocking register link */}}>
+          <Text style={[typography.caption, { marginTop: 25, textAlign: 'center' }]}>
+            Need a clearance level? <Text style={{color: colors.primary}}>Initialize Core</Text>
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 }
 
@@ -85,6 +88,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  content: {
+    flex: 1,
     justifyContent: 'center',
     padding: 30,
   },
@@ -92,7 +98,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderColor: colors.border,
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: 12,
     padding: 16,
     marginBottom: 20,
     color: colors.text,
@@ -101,7 +107,7 @@ const styles = StyleSheet.create({
   button: {
     backgroundColor: colors.primary,
     padding: 18,
-    borderRadius: 8,
+    borderRadius: 12,
     alignItems: 'center',
     marginTop: 10,
     shadowColor: colors.primary,

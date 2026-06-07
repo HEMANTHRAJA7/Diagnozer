@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, StatusBar, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, StatusBar, Dimensions, ScrollView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
@@ -24,42 +24,44 @@ export default function HomeScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      <Text style={[typography.body, styles.subtitle]}>
-        Initialize diagnostic parameters by selecting the crop genome below.
-      </Text>
+      <ScrollView contentContainerStyle={{ paddingBottom: 110 }}>
+        <Text style={[typography.body, styles.subtitle]}>
+          Initialize diagnostic parameters by selecting the crop genome below.
+        </Text>
 
-      <View style={styles.grid}>
-        <TouchableOpacity 
-          style={styles.card}
-          onPress={() => navigation.navigate('Scanner', { crop: 'mango' })}
-          activeOpacity={0.8}
-        >
-          <View style={styles.cardGlow} />
-          <Text style={[typography.h1, {fontSize: 40, marginBottom: 10}]}>🥭</Text>
-          <Text style={typography.h2}>Mango</Text>
-          <Text style={[typography.caption, {marginTop: 5, color: colors.primary}]}>Mangifera indica</Text>
-        </TouchableOpacity>
+        <View style={styles.grid}>
+          <TouchableOpacity 
+            style={styles.card}
+            onPress={() => navigation.navigate('Scanner', { crop: 'mango' })}
+            activeOpacity={0.8}
+          >
+            <View style={styles.cardGlow} />
+            <Text style={[typography.h1, {fontSize: 40, marginBottom: 10}]}>🥭</Text>
+            <Text style={typography.h2}>Mango</Text>
+            <Text style={[typography.caption, {marginTop: 5, color: colors.primary}]}>Mangifera indica</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity 
-          style={styles.card}
-          onPress={() => navigation.navigate('Scanner', { crop: 'jackfruit' })}
-          activeOpacity={0.8}
-        >
-          <View style={styles.cardGlow} />
-          <Text style={[typography.h1, {fontSize: 40, marginBottom: 10}]}>🍈</Text>
-          <Text style={typography.h2}>Jackfruit</Text>
-          <Text style={[typography.caption, {marginTop: 5, color: colors.primary}]}>Artocarpus hetero.</Text>
-        </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.card}
+            onPress={() => navigation.navigate('Scanner', { crop: 'jackfruit' })}
+            activeOpacity={0.8}
+          >
+            <View style={styles.cardGlow} />
+            <Text style={[typography.h1, {fontSize: 40, marginBottom: 10}]}>🍈</Text>
+            <Text style={typography.h2}>Jackfruit</Text>
+            <Text style={[typography.caption, {marginTop: 5, color: colors.primary}]}>Artocarpus hetero.</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity 
-          style={styles.historyCard}
-          onPress={() => navigation.navigate('History')}
-          activeOpacity={0.8}
-        >
-          <View style={styles.cardGlow} />
-          <Text style={[typography.h3, {color: colors.primary}]}>📜 View Diagnosis History</Text>
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity 
+            style={styles.historyCard}
+            onPress={() => navigation.navigate('History')}
+            activeOpacity={0.8}
+          >
+            <View style={styles.cardGlow} />
+            <Text style={[typography.h3, {color: colors.primary}]}>📜 View Diagnosis History</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
 
       <TouchableOpacity 
         style={styles.chatFab}
@@ -88,7 +90,6 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   grid: {
-    flex: 1,
     paddingHorizontal: 24,
     gap: 20,
   },
@@ -141,3 +142,4 @@ const styles = StyleSheet.create({
     elevation: 5,
   }
 });
+

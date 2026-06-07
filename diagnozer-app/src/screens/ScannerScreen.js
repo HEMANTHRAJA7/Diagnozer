@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, ActivityIndicator, SafeAreaView, StatusBar } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
@@ -70,52 +70,58 @@ export default function ScannerScreen({ route, navigation }) {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={[typography.h2, { marginBottom: 20 }]}>Scan {crop.toUpperCase()}</Text>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor={colors.background} />
 
-      {image ? (
-        <Image source={{ uri: image.uri }} style={styles.previewContainer} />
-      ) : (
-        <View style={styles.previewContainer}>
-          <Text style={{ fontSize: 50, marginBottom: 10 }}>🔬</Text>
-          <Text style={typography.body}>No image selected</Text>
-          <Text style={[typography.caption, { marginTop: 5 }]}>Camera or gallery below</Text>
-        </View>
-      )}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Text style={{ color: colors.primary, fontWeight: '600', fontSize: 16 }}>← Back</Text>
+        </TouchableOpacity>
+        <Text style={typography.h2}>Scan {crop.toUpperCase()}</Text>
+        <View style={{ width: 50 }} />
+      </View>
 
-      {loading ? (
-        <View style={{ marginTop: 30, alignItems: 'center' }}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={[typography.caption, { marginTop: 15, color: colors.primary }]}>Calculating SHAP array...</Text>
-        </View>
-      ) : (
-        <View style={{ width: '100%', marginTop: 30 }}>
-          {/* Source selection buttons */}
-          <View style={styles.btnRow}>
-            <TouchableOpacity style={[styles.button, { flex: 1, marginRight: 8 }]} onPress={takeProfilePicture}>
-              <Text style={styles.btnIcon}>📷</Text>
-              <Text style={typography.button}>{image ? 'RETAKE' : 'CAMERA'}</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={[styles.buttonOutline, { flex: 1, marginLeft: 8 }]} onPress={pickFromGallery}>
-              <Text style={styles.btnIcon}>🖼️</Text>
-              <Text style={[typography.button, { color: colors.primary }]}>GALLERY</Text>
-            </TouchableOpacity>
+      <View style={styles.body}>
+        {image ? (
+          <Image source={{ uri: image.uri }} style={styles.previewContainer} />
+        ) : (
+          <View style={styles.previewContainer}>
+            <Text style={{ fontSize: 50, marginBottom: 10 }}>🔬</Text>
+            <Text style={typography.body}>No image selected</Text>
+            <Text style={[typography.caption, { marginTop: 5 }]}>Camera or gallery below</Text>
           </View>
+        )}
 
-          {/* Analyse button — only when image is selected */}
-          {image && (
-            <TouchableOpacity style={styles.analyzeButton} onPress={uploadAndPredict}>
-              <Text style={[typography.button, { fontSize: 18 }]}>⚡ ANALYZE NOW</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      )}
+        {loading ? (
+          <View style={{ marginTop: 30, alignItems: 'center' }}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={[typography.caption, { marginTop: 15, color: colors.primary }]}>Calculating SHAP array...</Text>
+          </View>
+        ) : (
+          <View style={{ width: '100%', marginTop: 30 }}>
+            {/* Source selection buttons */}
+            <View style={styles.btnRow}>
+              <TouchableOpacity style={[styles.button, { flex: 1, marginRight: 8 }]} onPress={takeProfilePicture}>
+                <Text style={styles.btnIcon}>📷</Text>
+                <Text style={typography.button}>{image ? 'RETAKE' : 'CAMERA'}</Text>
+              </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginTop: 20 }}>
-        <Text style={typography.caption}>← Cancel Scan</Text>
-      </TouchableOpacity>
-    </View>
+              <TouchableOpacity style={[styles.buttonOutline, { flex: 1, marginLeft: 8 }]} onPress={pickFromGallery}>
+                <Text style={styles.btnIcon}>🖼️</Text>
+                <Text style={[typography.button, { color: colors.primary }]}>GALLERY</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Analyse button — only when image is selected */}
+            {image && (
+              <TouchableOpacity style={styles.analyzeButton} onPress={uploadAndPredict}>
+                <Text style={[typography.button, { fontSize: 18 }]}>⚡ ANALYZE NOW</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
+      </View>
+    </SafeAreaView>
   );
 }
 
@@ -123,6 +129,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 24,
+    borderBottomWidth: 1,
+    borderColor: colors.border,
+    marginTop: 10
+  },
+  body: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     padding: 20,
@@ -176,3 +194,4 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
 });
+
