@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     # Mock behavior flag
     MOCK_S3_UPLOAD: bool = True  # Set to True to save images locally instead
     LOCAL_UPLOAD_DIR: str = "uploads"
+    ML_SERVICE_EXTERNAL_URL: str = "http://localhost:8000"
 
     class Config:
         env_file = ".env"

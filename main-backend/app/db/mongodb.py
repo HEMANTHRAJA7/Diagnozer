@@ -31,6 +31,33 @@ class MockCollection:
             matches.sort(key=lambda x: x.get(key, datetime.min), reverse=(direction == -1))
         return matches[0]
     
+    def find(self, query, sort=None):
+        items = _store[self.name]
+        matches = []
+        for item in items:
+            match = all(item.get(k) == v for k, v in query.items())
+            if match:
+                matches.append(dict(item))
+        
+        if sort:
+            key, direction = sort[0]
+            matches.sort(key=lambda x: x.get(key, datetime.min), reverse=(direction == -1))
+            
+        class MockCursor:
+            def __init__(self, data):
+                self.data = data
+                
+            def sort(self, key, direction=1):
+                self.data.sort(key=lambda x: x.get(key, datetime.min), reverse=(direction == -1))
+                return self
+                
+            async def to_list(self, length=None):
+                if length is not None:
+                    return self.data[:length]
+                return self.data
+                
+        return MockCursor(matches)
+    
     async def insert_one(self, doc):
         doc = dict(doc)
         doc["_id"] = f"mock_{self.name}_{len(_store[self.name]) + 1}"
