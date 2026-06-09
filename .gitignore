@@ -39,3 +39,8 @@ yarn-debug.log
 diagnozer-app-backup/
 *.bak
 *.tmp
+
+
+**/.agent/
+**/.planning/
+**/GEMINI.md
